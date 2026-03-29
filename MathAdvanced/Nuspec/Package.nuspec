@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>MathAdvanced</id>
+
+    <version>1.0.3</version>
+    <authors>Jérôme FRANCOIS, JB-OPale Teams</authors>
+    <owners>JB-OPale</owners>
+    <projectUrl>https://JBOPaleAPI.fr/?p=219</projectUrl>
+    <!--<licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>-->
+    <!--<icon>JBOPaleAPI_Logo_fond.png</icon>-->
+    <description>
+	  Ensemble de méthodes et de classe mathématiques	
+    </description>
+    <copyright>Copyright JB-OPale 2022</copyright>
+    <tags>JB-OPale Extensions Math MathAdvanced</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\bin\Release\JBOPaleAPI.MathAdvanced.dll" target="lib\net461" />
+    <file src="..\bin\Release\JBOPaleAPI.MathAdvanced.pdb" target="lib\net461" />
+    <file src="..\bin\Release\JBOPaleAPI.MathAdvanced.xml" target="lib\net461" />
+    <!--<file src="..\JBOPaleAPI_Logo_fond.png" />-->
+  </files>
+</package>
