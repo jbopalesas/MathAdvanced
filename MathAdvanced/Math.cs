@@ -5,61 +5,171 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace JBOPaleAPI.MathAdvanced
-{ 
+{
+    /// <summary>
+    /// <para><b>[FR]</b> Fournit des méthodes utilitaires mathématiques et géométriques pour les
+    /// calculs en 2D et 3D : conversions d'angles, appartenance à un segment, et calculs
+    /// d'intersections cercle/segment et segment/segment.</para>
+    /// <para><b>[EN]</b> Provides mathematical and geometric utility methods for 2D and 3D
+    /// computations: angle conversions, point-on-segment testing, and circle/segment and
+    /// segment/segment intersection calculations.</para>
+    /// </summary>
     public static class Extensions
     {
-        public static double DegreeToRadian(double angle)
+        #region Angle Conversions / Conversions d'angles
+
+        /// <summary>
+        /// <para><b>[FR]</b> Convertit un angle exprimé en degrés vers son équivalent en radians.</para>
+        /// <para><b>[EN]</b> Converts an angle expressed in degrees to its equivalent in radians.</para>
+        /// </summary>
+        /// <param name="degrees">
+        /// <b>[FR]</b> Angle en degrés. /
+        /// <b>[EN]</b> Angle in degrees.
+        /// </param>
+        /// <returns>
+        /// <b>[FR]</b> Valeur de l'angle en radians : <c>degrees × π / 180</c>. /
+        /// <b>[EN]</b> Angle value in radians: <c>degrees × π / 180</c>.
+        /// </returns>
+        public static double DegreesToRadians(double degrees)
         {
-            return System.Math.PI * angle / 180.0;
-        }
-        public static double RadianToDegree(double angle)
-        {
-            return angle * (180.0 / System.Math.PI);
+            return System.Math.PI * degrees / 180.0;
         }
 
-        public static bool AppartientSegmentAB(Point A, Point B, Point C, double Tolerance = 0)
+        /// <summary>
+        /// <para><b>[FR]</b> Convertit un angle exprimé en radians vers son équivalent en degrés.</para>
+        /// <para><b>[EN]</b> Converts an angle expressed in radians to its equivalent in degrees.</para>
+        /// </summary>
+        /// <param name="radians">
+        /// <b>[FR]</b> Angle en radians. /
+        /// <b>[EN]</b> Angle in radians.
+        /// </param>
+        /// <returns>
+        /// <b>[FR]</b> Valeur de l'angle en degrés : <c>radians × 180 / π</c>. /
+        /// <b>[EN]</b> Angle value in degrees: <c>radians × 180 / π</c>.
+        /// </returns>
+        public static double RadiansToDegrees(double radians)
         {
-            Vecteur v1 = new Vecteur(A, B);
-            Vecteur v2 = new Vecteur(A, C);
+            return radians * (180.0 / System.Math.PI);
+        }
 
-            Vecteur v = v1 ^ v2;
-            if (System.Math.Abs(v.Norme) <= System.Math.Abs(Tolerance))
+        #endregion
+
+        #region Geometry / Géométrie
+
+        /// <summary>
+        /// <para><b>[FR]</b> Détermine si le point <paramref name="point"/> appartient au segment
+        /// [<paramref name="segmentStart"/>, <paramref name="segmentEnd"/>]. La vérification repose
+        /// sur la colinéarité des vecteurs et l'inclusion du point entre les deux extrémités.</para>
+        /// <para><b>[EN]</b> Determines whether <paramref name="point"/> lies on the segment
+        /// [<paramref name="segmentStart"/>, <paramref name="segmentEnd"/>]. The check is based on
+        /// collinearity of the direction vectors and inclusion of the point between both endpoints.</para>
+        /// </summary>
+        /// <param name="segmentStart">
+        /// <b>[FR]</b> Extrémité d'origine du segment. /
+        /// <b>[EN]</b> Start endpoint of the segment.
+        /// </param>
+        /// <param name="segmentEnd">
+        /// <b>[FR]</b> Extrémité d'arrivée du segment. /
+        /// <b>[EN]</b> End endpoint of the segment.
+        /// </param>
+        /// <param name="point">
+        /// <b>[FR]</b> Point à tester. /
+        /// <b>[EN]</b> Point to test.
+        /// </param>
+        /// <param name="tolerance">
+        /// <para><b>[FR]</b> Tolérance numérique appliquée sur la norme du produit vectoriel et sur
+        /// le test de colinéarité. Par défaut : 0 (comparaison exacte).</para>
+        /// <para><b>[EN]</b> Numerical tolerance applied to the cross-product norm and the
+        /// collinearity test. Default: 0 (exact comparison).</para>
+        /// </param>
+        /// <returns>
+        /// <b>[FR]</b> <c>true</c> si le point est sur le segment à la tolérance donnée ; <c>false</c> sinon. /
+        /// <b>[EN]</b> <c>true</c> if the point lies on the segment within the given tolerance; <c>false</c> otherwise.
+        /// </returns>
+        public static bool IsOnSegment(Point segmentStart, Point segmentEnd, Point point, double tolerance = 0)
+        {
+            Vecteur v1 = new Vecteur(segmentStart, segmentEnd);
+            Vecteur v2 = new Vecteur(segmentStart, point);
+
+            Vecteur cross = v1 ^ v2;
+            if (System.Math.Abs(cross.Norm) <= System.Math.Abs(tolerance))
             {
-                double Kac = v1.dot(v2);
-                double Colineaire = System.Math.Abs(1 - Kac / (v1.Norme * v2.Norme));
-                if (Colineaire <= System.Math.Abs(Tolerance) && v1.Norme >= v2.Norme)
+                double dotProduct = v1.Dot(v2);
+                double collinearity = System.Math.Abs(1 - dotProduct / (v1.Norm * v2.Norm));
+                if (collinearity <= System.Math.Abs(tolerance) && v1.Norm >= v2.Norm)
                     return true;
             }
-
 
             return false;
         }
 
-        public static int IntersectionCercleSegment(Point pCentre, double rayon, Point pA, Point pB, double toleranceX, double toleranceY, out double[][] intersect)
+        /// <summary>
+        /// <para><b>[FR]</b> Calcule le(s) point(s) d'intersection entre un cercle et un segment
+        /// dans le plan XY. Le centre du cercle peut être décalé par des tolérances sur X et Y.</para>
+        /// <para><b>[EN]</b> Computes the intersection point(s) between a circle and a segment in
+        /// the XY plane. The circle center can be offset by tolerances on X and Y.</para>
+        /// </summary>
+        /// <param name="circleCenter">
+        /// <b>[FR]</b> Centre du cercle. /
+        /// <b>[EN]</b> Center of the circle.
+        /// </param>
+        /// <param name="radius">
+        /// <b>[FR]</b> Rayon du cercle. /
+        /// <b>[EN]</b> Radius of the circle.
+        /// </param>
+        /// <param name="segmentStart">
+        /// <b>[FR]</b> Première extrémité du segment. /
+        /// <b>[EN]</b> First endpoint of the segment.
+        /// </param>
+        /// <param name="segmentEnd">
+        /// <b>[FR]</b> Seconde extrémité du segment. /
+        /// <b>[EN]</b> Second endpoint of the segment.
+        /// </param>
+        /// <param name="toleranceX">
+        /// <b>[FR]</b> Décalage appliqué sur la coordonnée X du centre. /
+        /// <b>[EN]</b> Offset applied to the X coordinate of the center.
+        /// </param>
+        /// <param name="toleranceY">
+        /// <b>[FR]</b> Décalage appliqué sur la coordonnée Y du centre. /
+        /// <b>[EN]</b> Offset applied to the Y coordinate of the center.
+        /// </param>
+        /// <param name="intersections">
+        /// <para><b>[FR]</b> Tableau de deux entrées [t, X, Y] où t est le paramètre sur le segment
+        /// (t ∈ [0,1] si sur le segment), et (X, Y) les coordonnées du point d'intersection.
+        /// La seconde entrée vaut [-1, -1, -1] en cas d'intersection tangente.</para>
+        /// <para><b>[EN]</b> Array of two entries [t, X, Y] where t is the parameter along the
+        /// segment (t ∈ [0,1] if on the segment), and (X, Y) the intersection coordinates.
+        /// The second entry is [-1, -1, -1] for a tangent intersection.</para>
+        /// </param>
+        /// <returns>
+        /// <b>[FR]</b> <c>0</c> si aucune intersection ; <c>1</c> si une ou deux intersections existent. /
+        /// <b>[EN]</b> <c>0</c> if no intersection; <c>1</c> if one or two intersections exist.
+        /// </returns>
+        public static int CircleSegmentIntersection(
+            Point circleCenter, double radius,
+            Point segmentStart, Point segmentEnd,
+            double toleranceX, double toleranceY,
+            out double[][] intersections)
         {
-            intersect = new double[2][];
+            intersections = new double[2][];
 
-            double Ax = pA.X;
-            double Ay = pA.Y;
-            double Bx = pB.X;
-            double By = pB.Y;
-            double Ox = pCentre.X + toleranceX;
-            double Oy = pCentre.Y + toleranceY;
+            double ax = segmentStart.X;
+            double ay = segmentStart.Y;
+            double bx = segmentEnd.X;
+            double by = segmentEnd.Y;
+            double ox = circleCenter.X + toleranceX;
+            double oy = circleCenter.Y + toleranceY;
 
-            double dx = Bx - Ax;
-            double dy = By - Ay;
-            double A = dx * dx + dy * dy;
-            double B = 2 * (dx * (Ax - Ox) + dy * (Ay - Oy));
-            double C = (Ax - Ox) * (Ax - Ox) + (Ay - Oy) * (Ay - Oy) - rayon * rayon;
+            double dx = bx - ax;
+            double dy = by - ay;
+            double a = dx * dx + dy * dy;
+            double b = 2 * (dx * (ax - ox) + dy * (ay - oy));
+            double c = (ax - ox) * (ax - ox) + (ay - oy) * (ay - oy) - radius * radius;
 
-            double delta = B * B - 4 * A * C;
+            double delta = b * b - 4 * a * c;
 
-            double racine1 = -1;
-            double X1 = -1;
-            double Y1 = -1;
-            double racine2 = -1;
-            double X2 = -1;
-            double Y2 = -1;
+            double t1 = -1, x1 = -1, y1 = -1;
+            double t2 = -1, x2 = -1, y2 = -1;
 
             if (delta < 0)
             {
@@ -67,70 +177,102 @@ namespace JBOPaleAPI.MathAdvanced
             }
             else if (delta == 0)
             {
-                racine1 = -B / (2 * A);
-                X1 = racine1 * dx + Ax;
-                Y1 = racine1 * dy + Ay;
+                t1 = -b / (2 * a);
+                x1 = t1 * dx + ax;
+                y1 = t1 * dy + ay;
             }
             else
             {
+                t1 = (-b - System.Math.Sqrt(delta)) / (2 * a);
+                x1 = t1 * dx + ax;
+                y1 = t1 * dy + ay;
 
-                racine1 = (-B - System.Math.Sqrt(delta)) / (2 * A);
-                X1 = racine1 * dx + Ax;
-                Y1 = racine1 * dy + Ay;
-
-                racine2 = (-B + System.Math.Sqrt(delta)) / (2 * A);
-                X2 = racine2 * dx + Ax;
-                Y2 = racine2 * dy + Ay;
+                t2 = (-b + System.Math.Sqrt(delta)) / (2 * a);
+                x2 = t2 * dx + ax;
+                y2 = t2 * dy + ay;
             }
-            intersect[0] = new double[3] { racine1, X1, Y1 };
-            intersect[1] = new double[3] { racine2, X2, Y2 };
+
+            intersections[0] = new double[3] { t1, x1, y1 };
+            intersections[1] = new double[3] { t2, x2, y2 };
 
             return 1;
         }
 
-        public static int IntersectionSegmentSegment(Point pA, Point pB, Point pC, Point pD, out Point intersect)
+        /// <summary>
+        /// <para><b>[FR]</b> Calcule le point d'intersection entre deux segments [AB] et [CD]
+        /// dans le plan XY, en utilisant le produit vectoriel des directions pour détecter la collision.</para>
+        /// <para><b>[EN]</b> Computes the intersection point between two segments [AB] and [CD]
+        /// in the XY plane, using the cross product of their directions to detect collision.</para>
+        /// </summary>
+        /// <param name="segmentAStart">
+        /// <b>[FR]</b> Première extrémité du segment AB. /
+        /// <b>[EN]</b> First endpoint of segment AB.
+        /// </param>
+        /// <param name="segmentAEnd">
+        /// <b>[FR]</b> Seconde extrémité du segment AB. /
+        /// <b>[EN]</b> Second endpoint of segment AB.
+        /// </param>
+        /// <param name="segmentBStart">
+        /// <b>[FR]</b> Première extrémité du segment CD. /
+        /// <b>[EN]</b> First endpoint of segment CD.
+        /// </param>
+        /// <param name="segmentBEnd">
+        /// <b>[FR]</b> Seconde extrémité du segment CD. /
+        /// <b>[EN]</b> Second endpoint of segment CD.
+        /// </param>
+        /// <param name="intersection">
+        /// <para><b>[FR]</b> Point d'intersection calculé, ou <c>null</c> si les segments sont
+        /// parallèles ou ne se croisent pas.</para>
+        /// <para><b>[EN]</b> Computed intersection point, or <c>null</c> if the segments are
+        /// parallel or do not cross.</para>
+        /// </param>
+        /// <returns>
+        /// <b>[FR]</b> <c>0</c> si les segments sont parallèles ou ne se croisent pas ; <c>1</c> sinon. /
+        /// <b>[EN]</b> <c>0</c> if segments are parallel or do not intersect; <c>1</c> otherwise.
+        /// </returns>
+        public static int SegmentSegmentIntersection(
+            Point segmentAStart, Point segmentAEnd,
+            Point segmentBStart, Point segmentBEnd,
+            out Point? intersection)
         {
-            intersect = null;// new Point();
+            intersection = null;
 
-            double Ax = pA.X;
-            double Ay = pA.Y;
-            double Bx = pB.X;
-            double By = pB.Y;
-            double Cx = pC.X;
-            double Cy = pC.Y;
-            double Dx = pD.X;
-            double Dy = pD.Y;
+            double ax = segmentAStart.X, ay = segmentAStart.Y;
+            double bx = segmentAEnd.X, by = segmentAEnd.Y;
+            double cx = segmentBStart.X, cy = segmentBStart.Y;
+            double dx = segmentBEnd.X, dy = segmentBEnd.Y;
 
-            double[] AB = new double[2] { Bx - Ax, By - Ay };
-            double[] CD = new double[2] { Dx - Cx, Dy - Cy };
-            double prodVect = AB[0] * CD[1] - CD[0] * AB[1];
+            double[] ab = new double[2] { bx - ax, by - ay };
+            double[] cd = new double[2] { dx - cx, dy - cy };
+            double crossProduct = ab[0] * cd[1] - cd[0] * ab[1];
 
-            //vecteur collineaires
-            if (prodVect == 0) return 0;
+            // Vecteurs colinéaires : pas d'intersection unique
+            // Collinear vectors: no unique intersection
+            if (crossProduct == 0) return 0;
 
-            bool denomPositive = prodVect > 0;
+            bool isDenominatorPositive = crossProduct > 0;
 
-            double[] CA = new double[2] { Ax - Cx, Ay - Cy };
-            double s_numer = AB[0] * CA[1] - CA[0] * AB[1];
-            if ((s_numer < 0) == denomPositive)
-                return 0; // No collision
+            double[] ca = new double[2] { ax - cx, ay - cy };
+            double sNumerator = ab[0] * ca[1] - ca[0] * ab[1];
+            if ((sNumerator < 0) == isDenominatorPositive) return 0;
 
-            double t_numer = CD[0] * CA[1] - CA[0] * CD[1];
-            if ((t_numer < 0) == denomPositive)
-                return 0; // No collision
+            double tNumerator = cd[0] * ca[1] - ca[0] * cd[1];
+            if ((tNumerator < 0) == isDenominatorPositive) return 0;
 
-            if (((s_numer > prodVect) == denomPositive) || ((t_numer > prodVect) == denomPositive))
-                return 0; // No collision
+            if (((sNumerator > crossProduct) == isDenominatorPositive) ||
+                ((tNumerator > crossProduct) == isDenominatorPositive)) return 0;
 
-            // Collision detected
-            double t = t_numer / prodVect;
+            double t = tNumerator / crossProduct;
 
-            intersect = new Point();
-            intersect.X = Ax + (t * AB[0]);
-            intersect.Y = Ay + (t * AB[1]);
+            intersection = new Point(
+                ax + t * ab[0],
+                ay + t * ab[1],
+                0
+            );
 
             return 1;
         }
 
+        #endregion
     }
 }
